@@ -8,9 +8,13 @@ from datetime import datetime
 #Global variables
 loadDataset = dict()
 
+pathIdList = [] #list of available ids
+
+"""
 loadedPathWeights = [] #Represents path weights for delivery trips
 
 inBetweenPathWeights = []
+"""
 
 #TODO: Temp data used to test algorithm
 TripPlan = {
@@ -58,9 +62,12 @@ def timeCalc(distance):
 # Function to fetch data from the dataset csv file
 def dataFetch():
     global loadDataset 
+    global pathIdList
     file = open("./dataset.csv", "r")
     loadDataset = list(csv.DictReader(file))
-    
+    for i in loadDataset:
+        pathIdList.append(i["load_id"])
+"""    
 #Populates graph with distances
 def populateGraph():
     global loadDataset
@@ -79,11 +86,12 @@ def populateGraph():
             unloadedProfit = profitCalc(unloadedDist, 0)
             unloadedTime = timeCalc(unloadedDist)
             inBetweenPathWeights[i][j] = [unloadedProfit, unloadedTime]
+"""
+
 
 def routePlan(tripInput):
     id = tripInput["input_trip_id"] 
     loadIdList = []
-    
     initialDistanceList = []
     
     timeLimit = timeConverter(tripInput["max_destination_time"]) - timeConverter(tripInput["start_time"])
@@ -111,7 +119,6 @@ def main():
     print("Now fetching data; please be patient...\n")
     dataFetch()
     print("Data fetching completed! Commencing calculations...")
-    #populateGraph()
  
     print(routePlan(TripPlan))
 
