@@ -128,6 +128,23 @@ def evalRoute(listOfIds, tripInput):
     return profit
 
 def randomFillList(idList, tripInput):
+    
+    trialsPermitted = 10
+    
+    for _ in range(trialsPermitted):
+        proposed = pathIdList[random.randint(0, len(pathIdList))]
+        testList = idList.copy()
+        testList.append(proposed)
+        newEval = evalRoute(testList, tripInput)
+        if newEval > 0:
+            idList = testList
+            break
+        
+        
+    return idList
+
+"""
+def randomFillList(idList, tripInput):
     eval = evalRoute(idList, tripInput)
     
     trialsPermitted = 10
@@ -137,11 +154,12 @@ def randomFillList(idList, tripInput):
         testList = idList.copy()
         testList.append(proposed)
         newEval = evalRoute(testList, tripInput)
-        if (not newEval == None) and (newEval > eval):
+        if (not eval == null) and (newEval > eval):
             idList = testList
         
+        
     return idList
-
+"""
 """
 def naturalSelect(idLists, tripInput):
     newLists = idLists.copy().sort(key=lambda x: evalRoute(x, tripInput))
@@ -158,34 +176,33 @@ def mutateList(idList, tripInput):
 def routePlan(tripInput):
     id = tripInput["input_trip_id"] 
     idList = []
+    
+    #Initial approximation
     maxProfit = 0
+    maxEntry = None
+    for entry in pathIdList:
+        eval = evalRoute([entry], tripInput)
+        if (eval > maxProfit):
+            maxProfit = eval
+            maxEntry = entry
+    if (not maxEntry == None):
+        idList.append(maxEntry)
     
-    #Initial approximation using a "failure budget" to prevent algorithm from running forever
-    failureBudget = 100.0
-    while failureBudget > 0:
-        for entry in pathIdList:
-            proposedList = idList.copy()
-            proposedList.append(int(entry))
-            eval = evalRoute(proposedList, tripInput)
-            if (eval > maxProfit):
-                maxProfit = eval
-                idList = proposedList
-            elif (eval < 0):
-                failureBudget -= 1
-            else:
-                failureBudget -= 0.24
-                
+    temperature = 1000
+    annealList = idList[:]
+    while temperature > 0:
+        fitness = evalRoute(annealList, tripInput)
+        newList = mutateList(annealList, tripInput)
+        if (evalRoute(newList, tripInput) > fitness or random.randint(0,100) < temperature):
+            fitness = evalRoute(newList, tripInput)
+            annealList = newList
+        temperature -= 1
     
-    
-    
-    
+    print(annealList)
+    return {"input_trip_id": id, "load_ids": annealList}  
+
 
         
-    print(idList)
-    return {"input_trip_id": id, "load_ids": idList}  
-
-
-            
         
 
 def main():
