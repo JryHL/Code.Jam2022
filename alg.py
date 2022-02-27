@@ -9,6 +9,8 @@ from datetime import datetime
 #Global variables
 loadDataset = dict()
 
+truckers = dict()
+
 pathIdList = [] #list of available ids
 
 """
@@ -197,7 +199,7 @@ def randomFillList(idList, tripInput):
     trialsPermitted = 10
     
     for _ in range(trialsPermitted):
-        proposed = pathIdList[random.randint(0, len(pathIdList))]
+        proposed = pathIdList[random.randint(0, len(pathIdList) - 1)]
         testList = idList.copy()
         testList.append(proposed)
         newEval = evalRoute(testList, tripInput)
@@ -234,7 +236,7 @@ def naturalSelect(idLists, tripInput):
 """
     
 def mutateList(idList, tripInput):
-    newList = idList.copy()[:random.randint(0,len(idList))]
+    newList = idList.copy()[:random.randint(int(len(idList) / 1.5),len(idList))]
     newList = randomFillList(newList, tripInput)
     return newList
 
@@ -253,12 +255,12 @@ def routePlan(tripInput):
     if (not maxEntry == None):
         idList.append(maxEntry)
     
-    temperature = 1000
+    temperature = 2000
     annealList = idList[:]
     while temperature > 0:
         fitness = evalRoute(annealList, tripInput)
         newList = mutateList(annealList, tripInput)
-        if (evalRoute(newList, tripInput) > fitness or random.randint(0,1000) < temperature):
+        if (evalRoute(newList, tripInput) > fitness or random.randint(0,2000) < temperature):
             fitness = evalRoute(newList, tripInput)
             annealList = newList
         temperature -= 1
