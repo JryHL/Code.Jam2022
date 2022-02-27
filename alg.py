@@ -265,7 +265,7 @@ def routePlan(tripInput):
             annealList = newList
         temperature -= 1
     
-    print("Profit: "+ str(evalRoute(annealList, tripInput)))
+    print("Profit: "+ str(evalRoute(annealList, tripInput))+"$")
     return {"input_trip_id": id, "load_ids": annealList}  
 
 
@@ -276,9 +276,20 @@ def main():
     print("\nWelcome to the TruckMatchr System!\n")
     print("Now fetching data; please be patient...\n")
     dataFetch()
-    print("Data fetching completed! Commencing calculations...")
-    for i in range (len(TripPlan)):
-        print(routePlan(TripPlan[i]))
-
+    print("Data fetching completed! Commencing calculations...\n")
+    outArray=[]
+    #for i in range  (len(TripPlan)) :
+    for i in range  (2) :
+        print("Trip "+str(i+1)+":\n")
+        try:
+            out = routePlan(TripPlan[i])
+        except:
+            print("Failed!\n\n")
+            out = {"input_trip_id": N/A, "load_ids": [N/A]}
+        print(str(out)+"\n\n")
+        outArray.append(out)
+    print(outArray)
+    with open('json_data.json', 'w') as outfile:
+        outfile.write(str(outArray))
 if __name__ == '__main__':
     main()
