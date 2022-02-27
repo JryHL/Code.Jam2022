@@ -3,6 +3,7 @@
 # Import Statements
 import math
 import csv
+from datetime import datetime
 
 #Global variables
 loadDataset = dict()
@@ -10,6 +11,22 @@ loadDataset = dict()
 loadedPathWeights = [] #Represents path weights for delivery trips
 
 inBetweenPathWeights = []
+
+#TODO: Temp data used to test algorithm
+TripPlan = {
+      "input_trip_id": 101,
+      "start_latitude": 27.961307,
+      "start_longitude": -82.4493,
+      "start_time": "2022-02-04 08:00:00",
+      "max_destination_time": "2022-02-06 15:00:00"
+   }
+
+#Returns time in hours since linux epoch
+def timeConverter(dataTimeStamp):
+
+    return (datetime.strptime(dataTimeStamp, "%Y-%m-%d %H:%M:%S")).timestamp() / 3600
+
+
 # Function that converts meters to miles
 def meterToMile(meters):
     return(0.0006213712*meters)
@@ -50,20 +67,53 @@ def populateGraph():
     global pathWeights
     global inBetweenPathWeights
     #initialize multidimensional list
-    inBetweenPathWeights = [[float('inf')] * len(loadDataset) for i in range(len(loadDataset))]
+    inBetweenPathWeights = [[[float('inf'), 0]] * len(loadDataset) for i in range(len(loadDataset))]
     
     for i, row in enumerate(loadDataset):
         dist = dCalc(float(row["origin_latitude"]), float(row["destination_latitude"]), float(row["origin_longitude"]), float(row["destination_longitude"]))
         profit = profitCalc(dist, float(row["amount"]))
-        loadedPathWeights.append(profit)
+        time = timeCalc(dist)
+        loadedPathWeights.append([profit, dist])
         for j, otherRow in enumerate(loadDataset):
             unloadedDist = dCalc(float(row["destination_latitude"]), float(otherRow["origin_latitude"]), float(row["destination_longitude"]), float(otherRow["origin_latitude"]))
             unloadedProfit = profitCalc(unloadedDist, 0)
-            inBetweenPathWeights[i][j] = unloadedProfit
-        
+            unloadedTime = timeCalc(unloadedDist)
+            inBetweenPathWeights[i][j] = [unloadedProfit, unloadedTime]
+
+def routePlan(tripInput):
+    id = tripInput["input_trip_id"] 
+    loadIdList = []
+    
+    initialDistanceList = []
+    
+    timeLimit = timeConverter(tripInput["max_destination_time"]) - timeConverter(tripInput["start_time"])
+    for row in loadDataset:
+        #distances from starting point to end 
+        dist = dCalc(float(tripInput["start_latitude"]), float(row["origin_latitude"]), float(tripInput["start_longitude"]), float(row["origin_longitude"]))
+        profit = profitCalc(dist, float(row["amount"]))
+        time = timeCalc(dist)
+        initialDistanceList.append([profit, time])
+    
+    maxIndex = 0;
+    maxProfit = 0;
+    
+    for i, row in enumerate(initialDistanceList):
+        if (row[0] > maxProfit and row[1] < timeLimit):
+            maxProfit = row[0]
+            maxIndex = i
+    loadIdList.append(loadDataset[i]["load_id"])
+    
+    return {"input_trip_id": id, "load_ids": loadIdList}  
+
+
 def main():
+    print("Welcome to the TruckMatchr System\n")
+    print("Now fetching data; please be patient...\n")
     dataFetch()
-    populateGraph()
+    print("Data fetching completed! Commencing calculations...")
+    #populateGraph()
+ 
+    print(routePlan(TripPlan))
 
 if __name__ == '__main__':
     main()
