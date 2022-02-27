@@ -286,10 +286,14 @@ def main():
         except:
             print("Failed!\n\n")
             out = {"input_trip_id": "N/A", "load_ids": ["N/A"]}
-        print(str(out)+"\n\n")
-        outArray.append(out)
+        strOut = str(out)
+        strOut = strOut.replace("\'","\"")
+        print(strOut+"\n\n")
+        outArray.append(strOut)
+    strOutArray = str(outArray)
+    strOutArray = strOutArray.replace("\'","")
     print(outArray)
     with open("json_data.json", "w") as outfile:
-        outfile.write(str(outArray))
+        outfile.write(str(strOutArray))
 if __name__ == "__main__":
     main()
