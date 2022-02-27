@@ -2,6 +2,7 @@
 
 # Import Statements
 import math
+import random
 import csv
 from datetime import datetime
 
@@ -88,10 +89,13 @@ def populateGraph():
             inBetweenPathWeights[i][j] = [unloadedProfit, unloadedTime]
 """
 
-# Returns the profit from going through a list of deliveries in series; returns none if exceeding time limit or if paths are repeated
+# Returns the profit from going through a list of deliveries in series; returns negative infinity if exceeding time limit or if paths are repeated
 def evalRoute(listOfIds, tripInput):
+    if (listOfIds == None):
+        return float('-inf')
+    
     if len(listOfIds) != len(set(listOfIds)):
-        return None
+        return float('-inf')
     
     global loadDataset
     profit = 0
@@ -108,7 +112,7 @@ def evalRoute(listOfIds, tripInput):
         currTime += timeCalc(dist)
         
         if (currTime > timeConverter(row["pickup_date_time"])):
-            return None
+            return float('-inf')
         
         #Actual delivery route
         dist = dCalc(float(row["origin_latitude"]),float(row["destination_latitude"]), float(row["origin_longitude"]), float(row["destination_longitude"]))
@@ -120,40 +124,76 @@ def evalRoute(listOfIds, tripInput):
         long = float(row["destination_longitude"])
         
         if (currTime > maxTime): 
-            return None
+            return float('-inf')
     return profit
+
+def randomFillList(idList, tripInput):
+    eval = evalRoute(idList, tripInput)
+    
+    trialsPermitted = 10
+    
+    for _ in range(trialsPermitted):
+        proposed = pathIdList[random.randint(0, len(pathIdList))]
+        testList = idList.copy()
+        testList.append(proposed)
+        newEval = evalRoute(testList, tripInput)
+        if (not newEval == None) and (newEval > eval):
+            idList = testList
+        
+    return idList
+
+"""
+def naturalSelect(idLists, tripInput):
+    newLists = idLists.copy().sort(key=lambda x: evalRoute(x, tripInput))
+    newLists = newLists[0:len(newLists) / 2]
+    newLists = newLists * 2
+    return newLists
+"""
+    
+def mutateList(idList, tripInput):
+    newList = idList.copy()[:random.randint(0,len(idList))]
+    newList = randomFillList(newList, tripInput)
+    return newList
 
 def routePlan(tripInput):
     id = tripInput["input_trip_id"] 
-    loadIdList = []
-    initialDistanceList = []
+    idList = []
+    maxProfit = 0
     
-    timeLimit = timeConverter(tripInput["max_destination_time"]) - timeConverter(tripInput["start_time"])
-    for row in loadDataset:
-        #distances from starting point to end 
-        dist = dCalc(float(tripInput["start_latitude"]), float(row["origin_latitude"]), float(tripInput["start_longitude"]), float(row["origin_longitude"]))
-        profit = profitCalc(dist, float(row["amount"]))
-        time = timeCalc(dist)
-        initialDistanceList.append([profit, time])
+    #Initial approximation using a "failure budget" to prevent algorithm from running forever
+    failureBudget = 100.0
+    while failureBudget > 0:
+        for entry in pathIdList:
+            proposedList = idList.copy()
+            proposedList.append(int(entry))
+            eval = evalRoute(proposedList, tripInput)
+            if (eval > maxProfit):
+                maxProfit = eval
+                idList = proposedList
+            elif (eval < 0):
+                failureBudget -= 1
+            else:
+                failureBudget -= 0.24
+                
     
-    maxIndex = 0;
-    maxProfit = 0;
     
-    for i, row in enumerate(initialDistanceList):
-        if (row[0] > maxProfit and row[1] < timeLimit):
-            maxProfit = row[0]
-            maxIndex = i
-    loadIdList.append(loadDataset[i]["load_id"])
     
-    return {"input_trip_id": id, "load_ids": loadIdList}  
+    
 
+        
+    print(idList)
+    return {"input_trip_id": id, "load_ids": idList}  
+
+
+            
+        
 
 def main():
     print("Welcome to the TruckMatchr System\n")
     print("Now fetching data; please be patient...\n")
     dataFetch()
     print("Data fetching completed! Commencing calculations...")
-    print (evalRoute([434057843,434076692,434077295], TripPlan))
+    print(routePlan(TripPlan))
 
 if __name__ == '__main__':
     main()
