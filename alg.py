@@ -134,7 +134,7 @@ def randomFillList(idList, tripInput):
     trialsPermitted = 10
     
     for _ in range(trialsPermitted):
-        proposed = pathIdList[random.randint(0, len(pathIdList))]
+        proposed = pathIdList[random.randint(0, len(pathIdList) - 1)]
         testList = idList.copy()
         testList.append(proposed)
         newEval = evalRoute(testList, tripInput)
