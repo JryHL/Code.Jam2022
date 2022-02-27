@@ -66,7 +66,7 @@ def dataFetch():
     file = open("./dataset.csv", "r")
     loadDataset = list(csv.DictReader(file))
     for i in loadDataset:
-        pathIdList.append(i["load_id"])
+        pathIdList.append(int(i["load_id"]))
 """    
 #Populates graph with distances
 def populateGraph():
@@ -88,6 +88,40 @@ def populateGraph():
             inBetweenPathWeights[i][j] = [unloadedProfit, unloadedTime]
 """
 
+# Returns the profit from going through a list of deliveries in series; returns none if exceeding time limit or if paths are repeated
+def evalRoute(listOfIds, tripInput):
+    if len(listOfIds) != len(set(listOfIds)):
+        return None
+    
+    global loadDataset
+    profit = 0
+    lat = float(tripInput["start_latitude"])
+    long = float(tripInput["start_longitude"])
+    maxTime = timeConverter(tripInput["max_destination_time"])
+    currTime = timeConverter(tripInput["start_time"])
+    for i in listOfIds:
+        index = pathIdList.index(i)
+        row = loadDataset[index]
+        #Calculate first stretch to pickup
+        dist = dCalc(lat, float(row["origin_latitude"]), long, float(row["origin_longitude"]))
+        profit += profitCalc(dist, 0)
+        currTime += timeCalc(dist)
+        
+        if (currTime > timeConverter(row["pickup_date_time"])):
+            return None
+        
+        #Actual delivery route
+        dist = dCalc(float(row["origin_latitude"]),float(row["destination_latitude"]), float(row["origin_longitude"]), float(row["destination_longitude"]))
+        profit += profitCalc(dist, float(row["amount"]))
+        currTime += timeCalc(dist)
+        
+        #set new positions
+        lat = float(row["destination_latitude"])
+        long = float(row["destination_longitude"])
+        
+        if (currTime > maxTime): 
+            return None
+    return profit
 
 def routePlan(tripInput):
     id = tripInput["input_trip_id"] 
@@ -119,8 +153,7 @@ def main():
     print("Now fetching data; please be patient...\n")
     dataFetch()
     print("Data fetching completed! Commencing calculations...")
- 
-    print(routePlan(TripPlan))
+    print (evalRoute([434057843,434076692,434077295], TripPlan))
 
 if __name__ == '__main__':
     main()
