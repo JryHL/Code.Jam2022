@@ -193,12 +193,12 @@ def routePlan(tripInput):
     while temperature > 0:
         fitness = evalRoute(annealList, tripInput)
         newList = mutateList(annealList, tripInput)
-        if (evalRoute(newList, tripInput) > fitness or random.randint(0,100) < temperature):
+        if (evalRoute(newList, tripInput) > fitness or random.randint(0,1000) < temperature):
             fitness = evalRoute(newList, tripInput)
             annealList = newList
         temperature -= 1
     
-    print(annealList)
+    print(evalRoute(annealList, tripInput))
     return {"input_trip_id": id, "load_ids": annealList}  
 
 
