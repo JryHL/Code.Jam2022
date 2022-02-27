@@ -2,15 +2,15 @@
 
 # Import Statements
 import math
+import csv
 
-
-
-
+global loadDataset
 # Function to fetch data from the dataset csv file
 def dataFetch():
-    dataset = open("./dataset.csv", "r")
-    dataset = dataset.readlines()
-    #print(dataset) #test for data collection, should print file in console
+    global loadDataset 
+    file = open("./dataset.csv", "r")
+    loadDataset = csv.DictReader(file)
+    
 
 def dCalc(lat1, lat2, lon1, lon2):
     R = 6371000 # metres
@@ -30,3 +30,6 @@ def dCalc(lat1, lat2, lon1, lon2):
 # Function that converts meters to miles
 def meter2mile(meters):
     return(0.0006213712*meters)
+
+dataFetch()
+
