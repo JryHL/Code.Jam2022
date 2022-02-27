@@ -5,8 +5,11 @@ import math
 import csv
 
 #Global variables
-global loadDataset
+loadDataset = dict()
 
+loadedPathWeights = [] #Represents path weights for delivery trips
+
+inBetweenPathWeights = []
 # Function that converts meters to miles
 def meterToMile(meters):
     return(0.0006213712*meters)
@@ -14,10 +17,10 @@ def meterToMile(meters):
 
 def dCalc(lat1, lat2, lon1, lon2):
     R = 6371000 # metres
-    φ1 = lat1 * math.PI/180 # φ, λ in radians
-    φ2 = lat2 * math.PI/180
-    Δφ = (lat2-lat1) * math.PI/180
-    Δλ = (lon2-lon1) * math.PI/180
+    φ1 = lat1 * math.pi/180 # φ, λ in radians
+    φ2 = lat2 * math.pi/180
+    Δφ = (lat2-lat1) * math.pi/180
+    Δλ = (lon2-lon1) * math.pi/180
 
     a = math.sin(Δφ/2) * math.sin(Δφ/2) + math.cos(φ1) * math.cos(φ2) * math.sin(Δλ/2) * math.sin(Δλ/2)
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
@@ -39,13 +42,28 @@ def timeCalc(distance):
 def dataFetch():
     global loadDataset 
     file = open("./dataset.csv", "r")
-    loadDataset = csv.DictReader(file)
+    loadDataset = list(csv.DictReader(file))
     
-
-
-
+#Populates graph with distances
+def populateGraph():
+    global loadDataset
+    global pathWeights
+    global inBetweenPathWeights
+    #initialize multidimensional list
+    inBetweenPathWeights = [[float('inf')] * len(loadDataset) for i in range(len(loadDataset))]
+    
+    for i, row in enumerate(loadDataset):
+        dist = dCalc(float(row["origin_latitude"]), float(row["destination_latitude"]), float(row["origin_longitude"]), float(row["destination_longitude"]))
+        profit = profitCalc(dist, float(row["amount"]))
+        loadedPathWeights.append(profit)
+        for j, otherRow in enumerate(loadDataset):
+            unloadedDist = dCalc(float(row["destination_latitude"]), float(otherRow["origin_latitude"]), float(row["destination_longitude"]), float(otherRow["origin_latitude"]))
+            unloadedProfit = profitCalc(unloadedDist, 0)
+            inBetweenPathWeights[i][j] = unloadedProfit
+        
 def main():
-    print("Hello world!")
+    dataFetch()
+    populateGraph()
 
 if __name__ == '__main__':
     main()
