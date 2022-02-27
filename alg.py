@@ -142,7 +142,7 @@ def populateGraph():
     global pathWeights
     global inBetweenPathWeights
     #initialize multidimensional list
-    inBetweenPathWeights = [[[float('inf'), 0]] * len(loadDataset) for i in range(len(loadDataset))]
+    inBetweenPathWeights = [[[float("inf"), 0]] * len(loadDataset) for i in range(len(loadDataset))]
     
     for i, row in enumerate(loadDataset):
         dist = dCalc(float(row["origin_latitude"]), float(row["destination_latitude"]), float(row["origin_longitude"]), float(row["destination_longitude"]))
@@ -159,10 +159,10 @@ def populateGraph():
 # Returns the profit from going through a list of deliveries in series; returns negative infinity if exceeding time limit or if paths are repeated
 def evalRoute(listOfIds, tripInput):
     if (listOfIds == None):
-        return float('-inf')
+        return float("-inf")
     
     if len(listOfIds) != len(set(listOfIds)):
-        return float('-inf')
+        return float("-inf")
     
     global loadDataset
     profit = 0
@@ -179,7 +179,7 @@ def evalRoute(listOfIds, tripInput):
         currTime += timeCalc(dist)
         
         if (currTime > timeConverter(row["pickup_date_time"])):
-            return float('-inf')
+            return float("-inf")
         
         #Actual delivery route
         dist = dCalc(float(row["origin_latitude"]),float(row["destination_latitude"]), float(row["origin_longitude"]), float(row["destination_longitude"]))
@@ -191,7 +191,7 @@ def evalRoute(listOfIds, tripInput):
         long = float(row["destination_longitude"])
         
         if (currTime > maxTime): 
-            return float('-inf')
+            return float("-inf")
     return profit
 
 def randomFillList(idList, tripInput):
@@ -278,18 +278,18 @@ def main():
     dataFetch()
     print("Data fetching completed! Commencing calculations...\n")
     outArray=[]
-    #for i in range  (len(TripPlan)) :
-    for i in range  (2) :
+    for i in range  (len(TripPlan)) :
         print("Trip "+str(i+1)+":\n")
+        # sometimes this outputs an error for an out of range, this makes sure the program does not terminate because of it
         try:
             out = routePlan(TripPlan[i])
         except:
             print("Failed!\n\n")
-            out = {"input_trip_id": N/A, "load_ids": [N/A]}
+            out = {"input_trip_id": "N/A", "load_ids": ["N/A"]}
         print(str(out)+"\n\n")
         outArray.append(out)
     print(outArray)
-    with open('json_data.json', 'w') as outfile:
+    with open("json_data.json", "w") as outfile:
         outfile.write(str(outArray))
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
